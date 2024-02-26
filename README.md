@@ -4,4 +4,4 @@ This is a simple program I wrote to solidify some basic Python skills following 
 
 I intend to iterate on this project further to solidify my understanding of programming and to teach myself 'best practices' in coding. 
 
--- Christopher Fowler (c.fowler00@yahoo.com
+-- Chris F.
