@@ -1,7 +1,29 @@
-# TextCrawl
+# TextCrawl v.20
 
-This is a simple program I wrote to solidify some basic Python skills following my first month of self-directed learning. To begin, you need only to place a .txt file in the same directory as the program and then tell the program which file you wish to scan (include the .txt in the filename. From there, TextCrawl will read your file and then parse, normalize, and add them to a dictionary data construct (except for very common words). Finally, the program will display the Top 25 most common words in the file. 
+TextCrawl is a Python application that analyzes text data to identify and display the frequency of words. It allows users to input text data from either local files or via URLs. The results can be displayed either as total word counts or filtered to show only the most common words.
 
-I intend to iterate on this project further to solidify my understanding of programming and to teach myself 'best practices' in coding. 
+## Features
+- **Word Frequency Analysis**: Analyze text files to find and count the most frequent words, excluding common words like 'the', 'is', etc.
+- **Support for Local and Web Text Files**: Load text data from local files or directly from URLs.
+- **Interactive User Interface**: Simple and intuitive command-line interface for easy navigation and usage.
+- **Robust Error Handling**: Includes detailed error handling to ensure a smooth user experience.
 
--- Chris F.
+### Prerequisites
+- Python 3.8 or higher
+- "requests" library for Python
+- Ensure you have a subdirectory named "Textfiles" to place .txt files in to use Option 1
+- Otherwise, a URL to a .txt file will suffice to use Option 2
+
+To install "requests", run the following command:
+- "pip install requests"
+
+### Usage
+To utilize the script, run the following command:
+- "python textcrawl_v.20.py"
+
+
+## Acknowledgements
+Special thanks to Professor Charles Severance for his excellent "Python for Everybody" book and series on Coursera!
+
+## Contact
+Christopher Fowler - c.fowler00@yahoo.com
