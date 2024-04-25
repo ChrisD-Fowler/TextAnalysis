@@ -33,13 +33,13 @@ Christopher Fowler - c.fowler00@yahoo.com
 
 ## Version History
 
-# v.30
+### v.30
 - Codebase split among four scripts (main.py, analysis.py, ui.py, ui_helpers.py) for easier code management.
 - Word frequency engine overhauled using Regular Expressions - resulting in much more predictable results.
 - Multiple functions were split into smaller sub-functions to improve modularity and management.
 - Numerous UI improvements to improve user experience.
 
-# v.20
+### v.20
 - Codebase overhauled to incorporate error handling, Python functions, and docstrings.
 - Support for .txt analysis from a URL.
 - User menu added to expand utility of program.
@@ -47,6 +47,6 @@ Christopher Fowler - c.fowler00@yahoo.com
 - Settings menu allows for user-customizable filters by viewing and editing the commonwords.txt file.
 
 
-# v.10
+### v.10
 - Simple script which returns the word frequency of a user-specified .txt file and returns the top 25 most-frequent words.
 - Filters words based on a hard-coded internal list of commonly-used words.
