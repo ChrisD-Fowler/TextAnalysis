@@ -16,7 +16,7 @@ def load_textfile(filename):
     filename
 
     Returns:
-    text_file_data
+    text_file
 
     Raises:
     - FileNotFoundError - if text file is not found in Textfiles directory
@@ -36,7 +36,7 @@ def load_textfile(filename):
         return None
 
     except Exception as e:
-        print(ui_helpers.RED + f'\nThe following error occurred: {e}' + ui_helpers.RESET + '\n\nPlease try again.\n')
+        print(ui_helpers.RED + f'\nThe following error occurred while attempting to load the .txt file: {e}' + ui_helpers.RESET + '\n\nPlease try again.\n')
         return None
 
 # URL-based text file open
@@ -157,7 +157,7 @@ def display_word_frequency(wordtally_results, number_to_list):
         top_count_words = sorted_list[:number_to_list]
 
     # Prints the 'Top N Words' list
-    print(ui_helpers.CYAN + '\nRank ) Word - Count','\n' + '_'*19 + '\n' + ui_helpers.RESET)
+    print(ui_helpers.CYAN + '\nRank ) Word - Count\n' + '_'*19 + '\n' + ui_helpers.RESET)
 
     for index, (word, count) in enumerate(top_count_words, start=1):
         print(f'{index}' + ') ' f'{word[0].upper()}{word[1:]} - {count}')
