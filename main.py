@@ -1,7 +1,7 @@
 # Import local script modules
 import ui
 """
-TextCrawl v.30 analyzes text data to identify and display the frequency of words. 
+TextCrawl v.40 analyzes text data to identify and display the frequency of words. 
 It allows users to input text data from either local files or via URLs. Results can be
 displayed either as total word counts or filtered to show only the most common words.
 
@@ -14,7 +14,7 @@ Features:
     - Robust error handling for a smooth user experience.
 
 Author: Christopher Fowler (c.fowler00@yahoo.com)
-Date: 2024-04-26
+Date: 2024-05-02
 """
 
 # Main program function
