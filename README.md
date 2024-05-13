@@ -1,4 +1,4 @@
-# TextCrawl v.40
+# TextCrawl v.50
 
 TextCrawl is a Python application that analyzes text data to identify and display the frequency of words. It allows users to input text data from either local files or via URLs. The results can be displayed either as total word counts or filtered to show only the most common words. Results may be added to a SQL database and queries may be generated to provide insight into the data (i.e., word use changes over time, etc.).
 
