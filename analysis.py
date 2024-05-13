@@ -2,11 +2,13 @@
 import os
 import requests
 import re
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Import local program scripts
 import ui_helpers
 
-# Loads a .txt file from Textfiles and returns it as string object
+# Loads a single .txt file from Textfiles and returns it as string
 def load_textfile(filename):
     """ 
     Loads the user-specified text files when called as filename parameter 
@@ -39,6 +41,34 @@ def load_textfile(filename):
         print(ui_helpers.RED + f'\nThe following error occurred while attempting to load the .txt file: {e}' + ui_helpers.RESET + '\n\nPlease try again.\n')
         return None
 
+# Clean and strip a txt file prior to processing
+def clean_strip_txt_file(loaded_text_file):
+    """
+    Assists other functions (such as analysis.text_tf_idf_analysis()) with noramlizing the contents of a .txt file and filtering any words found in the commonwords.txt filter prior to performing the TF-IDF calculation. Uses Regular Expressions.
+
+    Returns:
+    cleaned_content - the full text of the original file, normalized and stripped of any words found in commonwords.txt.
+
+    Raises:
+    Exception - for any unexpected errors encountered.
+    """
+    # Load commonwords.txt filter
+    common_words_list = load_common_words()
+    
+    try:
+        # Perform text cleaning operations using RE
+        text = loaded_text_file.lower()
+        text = re.sub(r'[\d_]+|[^\w\s]', '', text)
+
+        # Creat list of words not found in the common_words_list filter, rejoin as string
+        filtered_words = [word for word in text.split() if word not in common_words_list]
+        cleaned_content = ' '.join(filtered_words)
+        
+        return cleaned_content
+    
+    except Exception as e:
+        print(ui_helpers.RED + f'An error was encountered while trying to normalize and filter the .txt file: {e}' + ui_helpers.RESET)
+
 # URL-based text file open
 def url_text_file_open(user_url):
     """
@@ -67,7 +97,7 @@ def url_text_file_open(user_url):
 
 # Performs word frequency analysis with user parameters
 def tally_words(text_file_data, common_list):
-    """
+    r"""
     Counts the words in the user-specified text file which was loaded by the load_textfile function.
     Normalizes the words by stripping most punctuation, whitespace, and converts capital letters to
     lowercase. These noramlized words are then compared to the common_list object, and if not present,
@@ -129,16 +159,20 @@ def tally_words(text_file_data, common_list):
     return wordtally_dict
 
 # Display word frequency
-def display_word_frequency(wordtally_results, number_to_list):
+def display_word_frequency(filename, wordtally_results, number_to_list):
     """
     This function uses the dictionary object created in the tally_words function along with a user-defined number of words to list and displays the results of the .txt file word frequency count.
 
     Parameters:
+    filename: the name of the file processed.
     wordtally_results: Must be the wordtally_dict{} returned by the tally_words function.
     number_to_list: Typically a user-defined number of the top words to list (if user enters no value, all words will be displayed).
 
     Returns:
     sorted_list: This is the list object which displays the results of the tallying in order from greatest to smallest as of v.30.
+
+    Raises:
+    Exception for unexpected errors.
     """
 
     # Checks if wordtally_results contains data
@@ -146,27 +180,210 @@ def display_word_frequency(wordtally_results, number_to_list):
         print(ui_helpers.RED + 'Error: expected a dictionary but got None' + ui_helpers.RESET)
         return
     
-    # Preparing a list from the wordtally_results dictionary
-    tallied_list = list(wordtally_results.items())
-    sorted_list = sorted(tallied_list, key=lambda item:item[1], reverse=True)
+    try:
+        # Preparing a list from the wordtally_results dictionary
+        tallied_list = list(wordtally_results.items())
+        sorted_list = sorted(tallied_list, key=lambda item:item[1], reverse=True)
 
-    # Displays user-defined number of words (or all words)
-    if number_to_list == '':
-        top_count_words = sorted_list
-    else:
-        top_count_words = sorted_list[:number_to_list]
+        # Displays user-defined number of words (or all words)
+        if number_to_list == '':
+            top_count_words = sorted_list
+        else:
+            top_count_words = sorted_list[:number_to_list]
 
-    # Prints the 'Top N Words' list
-    print(ui_helpers.CYAN + '\nRank ) Word - Count\n' + '_'*19 + '\n' + ui_helpers.RESET)
+        # Prints the 'Top N Words' list
+        print(ui_helpers.CYAN + '\n\nFILE: ' + ui_helpers.RESET + f'{filename}')
+        print(ui_helpers.CYAN + '\nRank ) Word - Count\n' + '_'*19 + '\n' + ui_helpers.RESET)
+        for index, (word, count) in enumerate(top_count_words, start=1):
+            print(f'{index}' + ') ' f'{word[0].upper()}{word[1:]} - {count}')
 
-    for index, (word, count) in enumerate(top_count_words, start=1):
-        print(f'{index}' + ') ' f'{word[0].upper()}{word[1:]} - {count}')
+            # Pauses execution for user input when printing large result set
+            if index % 2500 == 0:
+                input(ui_helpers.YELLOW + '\nDisplayed 2,500 results! Press Enter to continue...' + ui_helpers.RESET)
 
-        # Pauses execution for user input when printing large result set
-        if index % 2500 == 0:
-            input(ui_helpers.YELLOW + '\nDisplayed 2,500 results! Press Enter to continue...' + ui_helpers.RESET)
+        return(sorted_list)
+    
+    except Exception as e:
+        print(ui_helpers.RED + f'An error occurred while trying to display the word count: {e}' + ui_helpers.RESET)
 
-    return(sorted_list)
+# TF-IDF Text File Analysis
+def text_tf_idf_analysis(files_to_process, menu_return):
+    """
+    Performs TF-IDF analysis on two or more text files. Returns the results as a DataFrame which can be used by other functions (i.e., to save as CSV, to visualize, etc.)
+
+    Parameters:
+    files_to_read - a list of file names to perform the analysis. Usually determined by the ui_helpers.list_select_textfile() function.
+    menu_return - specifies where to take the user if no file selection is made (i.e., "Enter" is pressed with no other input).
+    
+    Returns:
+    tfidf_df - a Pandas DF for use by other functions.
+    final_metadata - an optional list of dictionaries containing information about the file processed.
+    """
+    # Set lists for the TF-IDF Vectorizer and Pandas to use for data organization
+    texts = []
+    file_names = []
+    final_metadata = {}
+
+    # Checks to ensure list has two or more files
+    if len(files_to_process) < 2:
+        input(ui_helpers.RED + 'Error! You must select at least two documents to perform TF-IDF analysis!' + ui_helpers.RESET)
+        menu_return()
+        return
+
+    try:
+        # Ensures function looks in "Textfiles" subdirectory
+        ui_helpers.move_to_textfiles()
+
+        # Read each file specified
+        for filename in files_to_process:
+            file_content = load_textfile(filename)
+
+            # If the .txt file is not blank, requests user input file metadata
+            if file_content:
+                # Removes common words, numbers, punctuation
+                cleaned_content = clean_strip_txt_file(file_content)
+                doc_title, author, year, genre = ui_helpers.input_file_metadata(filename)
+                
+                # Adds metadata to final_metadata dictionary
+                if doc_title not in final_metadata: 
+                    final_metadata[doc_title] = {
+                    'doc_title': doc_title, 
+                    'author': author,
+                    'year': year,
+                    'genre': genre
+                }
+
+                # Adds file names and cleaned content to lists for Vectorizer
+                texts.append(cleaned_content)
+                file_names.append(filename)
+
+        # Initialize TF-IDF Vectorizer
+        vectorizer = TfidfVectorizer()
+
+        # Load contents of each file into Vectorizer
+        tfidf_matrix = vectorizer.fit_transform(texts)
+
+        # Convert TF-IDF matrix to Pandas DataFrame
+        tfidf_df = pd.DataFrame(tfidf_matrix.toarray(), 
+                                index=final_metadata.keys(), 
+                                columns=vectorizer.get_feature_names_out())
+
+        # Filter words with very low TF-IDF for data efficiency/performance
+        threshold = 0.01
+        tfidf_df = tfidf_df.loc[:, (tfidf_df.max() > threshold)]
+
+
+        return tfidf_df, final_metadata
+    
+    except Exception as e:
+        print(ui_helpers.RED + f'An error occurred while trying to analyze the .txt files: {e}' + ui_helpers.RESET)
+
+# TF-IDF SQL Query
+def sql_tf_idf_analysis(df):
+    r"""
+    Performs TF-IDF analysis on a DataFrame created using a SQL query and containing 'word counts by document.' Utilizes TfidfVectorizer for TF-IDF analysis once the DataFrame's data is re-aggregated into the documents dictionary. Creates a final_metadata dictionary for use by other functions (i.e., visuals.create_tf_idf_dash() in displaying document information.)
+
+    Parameters:
+    df - the DataFrame containing 'word counts by document' before TF-IDF scores are computed.
+
+    Returns:
+    tfidf_df - a new DataFrame with the same data as the original DataFrame, now including TF-IDF scores.
+    final_metadata - a dictionary containing key information about each document included in the DataFrame.
+
+    Raises:
+    Exception - for any unexpected errors encountered.
+    """
+
+    # Aggregate words into documents dictionary
+    documents = {}
+    final_metadata = {}
+    
+    try:
+        for index, row in df.iterrows():
+            doc_title = row['doc_title']
+            if doc_title not in documents:
+                documents[doc_title] = []
+            documents[doc_title].append((row['word'] + ' ') * row['count'])
+
+            # Get document metadata from SQL query
+            if doc_title not in final_metadata:
+                final_metadata[doc_title] = {
+                    'doc_title' : doc_title,
+                    'author' : row['author'],
+                    'year' : row['year'],
+                    'genre' : row['genre']
+                }
+        
+        # Rejoin words to form full document
+        for doc_title in documents:
+            documents[doc_title] = ''.join(documents[doc_title])
+
+        # Initialize TF-IDF Vectorizer
+        texts = list(documents.values())
+        vectorizer = TfidfVectorizer()
+
+        # Load contents of each file into Vectorizer
+        tfidf_matrix = vectorizer.fit_transform(texts)
+
+        # Convert TF-IDF matrix to Pandas DataFrame
+        tfidf_df = pd.DataFrame(tfidf_matrix.toarray(), 
+                                index=documents.keys(), 
+                                columns=vectorizer.get_feature_names_out())
+
+        return tfidf_df, final_metadata
+    
+    except Exception as e:
+        print(ui_helpers.RED + f'An error occurred while attempting to calculate TF-IDF scores: {e}' + ui_helpers.RESET)
+
+# Applies user-defined threshold to DataFrame containing TF-IDF scores
+def apply_threshold_filter(tfidf_df, threshold=0.01):
+    """
+    Applies a minimum threshold for filtering scores in a DataFrame which contains TF-IDF values. A TF-IDF typically contains large quantities of words and users often only need a select few.
+
+    Parameters:
+    tfidf_df - the DataFrame containing TF-IDF scores
+    threshold - a user-defined minimum threshold below which all columns (words) are removed. Default is .01.
+
+    Returns:
+    tfidf_df - with values filtered below the threshold.
+    """
+    return tfidf_df.loc[:, (tfidf_df.max() > threshold)]
+
+# Calculates the Min and Max values for a DataFrame
+def get_min_max(tfidf_df):
+    """
+    Calculates and returns the Min/Max values for TF-IDF scores in a DataFrame. Assists the ui.tf_idf_df_manipulation_menu() function, enabling the user to quickly sort or truncate a DF based on TF-IDF values.
+
+    Parameters:
+    tfidf_df - a Pandas DataFrame which contains TF-IDF score calculations.
+
+    Returns:
+    min_value - the smallest TF-IDF score in a TF-IDF DataFrame.
+    max_value - the largest TF-IDF score in a TF-IDF DataFrame.
+    """
+    min_value = tfidf_df.min().min()
+    max_value = tfidf_df.max().max()
+
+    return min_value, max_value
+
+# Enables user to search TF-IDF DataFrame for specific words
+def word_search_dataframe(tfidf_df, words_list):
+    """
+    Performs the search within a DataFrame for specific words (columns) and filters out non-matching columns.
+
+    Parameters:
+    tfidf_df - a Pandas DataFrame which contains TF-IDF score calculations.
+    words_list - a user-defined list of search words.
+
+    Returns:
+    filtered_df - the DataFrame once all undesired columns have been filtered.
+    """
+
+    # Checks if word is in DF column list and applies filter
+    filtered_words = [word for word in words_list if word in tfidf_df.columns]
+    filtered_df = tfidf_df[filtered_words]
+
+    return filtered_df
 
 # Creates the default commonwords.txt filter
 def initialize_common_words():
@@ -185,7 +402,7 @@ def initialize_common_words():
 # Loads commonwords.txt filter for user
 def load_common_words():
     """
-    Loads commonwords.txt file and returns it as a list object for use by other functions, such as tally_words.
+    Loads commonwords.txt file and returns it as a list for use by other functions, such as tally_words.
 
     Returns:
     common_words_list: For use in tally_words and other functions.

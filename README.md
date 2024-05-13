@@ -4,16 +4,20 @@ TextCrawl is a Python application that analyzes text data to identify and displa
 
 ## Features
 - **Word Frequency Analysis**: Analyze text files to find and count the most frequent words, excluding common words like 'the', 'is', etc.
+- **TF-IDF Analysis**: Term Frequency - Inverse Document Analysis measures word importance between two or more documents by balancing the raw counts of a word (TF) with the total number of documents analyzed (IDF). As a word is used more in a given document than it is in the others, the score is increased, revealing which words make each document unique.
+- **SQLite Support**: Users may save results of word frequency analysis to database and execute database queries, which may be saved as .csv files. These custom databases may then be used for various SQL queries or TF-IDF analysis and reporting.
+- **Interactive Dashboard**: Using Dash and Plotly, users may export the results of TF-IDF analysis to an interactive dashboard, enabling quick insight into each document's composition and uniqueness.
 - **Support for Local and Web Text Files**: Load text data from local files or directly from URLs.
-- **SQLite Support**: Users may save results of word frequency analysis to database and execute database queries, which may be saved as .csv files.
 - **Interactive User Interface**: Simple and intuitive command-line interface for easy navigation and usage.
+- **User Customization**: Users may define which words to filter, conduct word search queries, and manipulate DataFrames directly to organize and extract the data they need.
 - **Robust Error Handling**: Includes detailed error handling to ensure a smooth user experience.
 
 ### Prerequisites
 - Python 3.8 or higher.
-- "requests" library for Python.
-- Ensure you have a subdirectory named "Textfiles" to place .txt files in to use Option 1 for Word Frequency Analysis.
-- Otherwise, a valid URL to a .txt file will suffice to use Option 2 for Word Frequency Analysis.
+- Python Libraries: pandas, sklearn, Dash, plotly.express, sqlite3 requests.
+- 'Textfiles' subdirectory containing at least one .txt file or a direct URL for a .txt file (for basic Word Frequency function).
+- 'Textfiles' subdirectory containing two or more .txt files are required to run TF-IDF Analysis.
+- (Optional) DB Browser or other SQLite viewing tool for viewing databases outside of TextCrawl.
 
 ## Limitations
 - This script was built and tested on a Windows 11 PC. Using on a platform other than Windows 10 may result in colors or other features not displaying or executing properly.
@@ -36,6 +40,11 @@ Special thanks to Professor Charles Severance for his excellent "Python for Ever
 Christopher Fowler - c.fowler00@yahoo.com
 
 ## Version History
+
+### v.50
+- Added numerous SQL queries, enabling users to generate reports from database showing word counts by year, document, author, genre, and more.
+- TF-IDF Analysis function, enabling users to create a DataFrame with statistical rankings per word by document.
+- Visualizations menu allows users to display the results of TF-IDF analysis on an interactive bar chart.
 
 ### v.40
 - Added SQL database support, enabling users to save word frequency analyses from multiple files at a time to a specified database.
