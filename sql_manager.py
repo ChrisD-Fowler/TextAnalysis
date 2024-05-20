@@ -409,7 +409,7 @@ def query_most_used_words_by_genre(database_name, start_year=-3000, end_year=207
         """
 
         # Execute query and return results as DataFrame
-        df = pd.read_sql_query(query, conn, params=(start_year, end_year, top_n,))
+        df = pd.read_sql_query(query, conn, params=(start_year, end_year, start_year, end_year, top_n,))
         return df
     
     except sqlite3.Error as e:

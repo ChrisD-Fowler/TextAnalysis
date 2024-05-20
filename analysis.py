@@ -76,6 +76,12 @@ def url_text_file_open(user_url):
     fetches the file, loads common words for filtering, and prompts the user for the number of most commonly used 
     words to display. It then normalizes and tallies the words, excluding those found in commonwords.txt, and 
     displays the results.
+    
+    Parameters:
+    user_url - the user-specified URL for the .txt to open
+
+    Returns:
+    text_file_data - a string containing the complete text of the file retrieved at the URL specified. Used by other functions to process the words contained.
 
     Raises:
     Exception: catches unexpected exceptions that may occur during execution.
@@ -86,8 +92,13 @@ def url_text_file_open(user_url):
         if response.status_code == 200:
             response.encoding = 'utf-8'
             text_file_data = response.text
-            print('\nSuccessfully accessed .txt file!')
-            return text_file_data
+            
+            # Retrieves the filename
+            filename = user_url.split('/')
+            filename = filename[-1:]
+
+            print(f'\nSuccessfully accessed {filename} file!')
+            return filename, text_file_data
             
         else:
             print(ui_helpers.RED + 'Failed to retrieve data.', response.status_code + ui_helpers.RESET + 'Please check the URL or your connection and try again.')
@@ -119,11 +130,9 @@ def tally_words(text_file_data, common_list):
     common_list: A list object of words to filter returned by load_common_words()
 
     Returns:
-    wordtally_dict
+    wordtally_dict - a dictionary containing all words from text_file_data and NOT in common_list with number of occurrences (k:v = word:count)
 
     Raises:
-    - FileNotFoundError - if text file is not found in Textfiles directory
-    - ValueError - if number is not entered for words to count
     - Exception - for other unexpected issues 
 
     Notes:
@@ -141,16 +150,6 @@ def tally_words(text_file_data, common_list):
             if word not in common_list and len(word) > 2:
                 wordtally_dict[word] = wordtally_dict.get(word, 0) + 1
 
-    except FileNotFoundError as e:
-        ui_helpers.clear_screen()
-        print(ui_helpers.RED + f'{e}' + ui_helpers.RESET)
-        input('...')
-
-    except ValueError as e:
-        ui_helpers.clear_screen()
-        print(ui_helpers.RED + f'The following Value Error was encountered while trying to analyze the file: {e}')
-        input('...')
-
     except Exception as e:
         ui_helpers.clear_screen()
         print(ui_helpers.RED + f'TextCrawl encountered an unexpected error during the word_tally function: {e} ' + ui_helpers.RESET)
@@ -159,30 +158,31 @@ def tally_words(text_file_data, common_list):
     return wordtally_dict
 
 # Display word frequency
-def display_word_frequency(filename, wordtally_results, number_to_list):
+def display_word_frequency(filename, wordtally_dict, number_to_list):
     """
-    This function uses the dictionary object created in the tally_words function along with a user-defined number of words to list and displays the results of the .txt file word frequency count.
+    This function uses the dictionary created in the tally_words function along with a user-defined number of words to list and displays the results of the .txt file word frequency count.
 
     Parameters:
-    filename: the name of the file processed.
-    wordtally_results: Must be the wordtally_dict{} returned by the tally_words function.
-    number_to_list: Typically a user-defined number of the top words to list (if user enters no value, all words will be displayed).
+    filename - the name of the file processed.
+    wordtally_dict - must be the wordtally_dict{} returned by the tally_words function.
+    number_to_list - typically a user-defined number of the top words to list (if user enters no value, all words will be displayed).
 
     Returns:
-    sorted_list: This is the list object which displays the results of the tallying in order from greatest to smallest as of v.30.
+    wordtally_dict - the original wordtally dictionary (to be used by other functions)
+    sorted_list - the list which displays the results of the tallying in order from greatest to smallest as of v.30.
 
     Raises:
     Exception for unexpected errors.
     """
 
-    # Checks if wordtally_results contains data
-    if wordtally_results is None:
+    # Checks if wordtally_dict contains data
+    if wordtally_dict is None:
         print(ui_helpers.RED + 'Error: expected a dictionary but got None' + ui_helpers.RESET)
         return
     
     try:
-        # Preparing a list from the wordtally_results dictionary
-        tallied_list = list(wordtally_results.items())
+        # Preparing a list from the wordtally_dict dictionary
+        tallied_list = list(wordtally_dict.items())
         sorted_list = sorted(tallied_list, key=lambda item:item[1], reverse=True)
 
         # Displays user-defined number of words (or all words)
@@ -201,7 +201,7 @@ def display_word_frequency(filename, wordtally_results, number_to_list):
             if index % 2500 == 0:
                 input(ui_helpers.YELLOW + '\nDisplayed 2,500 results! Press Enter to continue...' + ui_helpers.RESET)
 
-        return(sorted_list)
+        return(wordtally_dict, sorted_list)
     
     except Exception as e:
         print(ui_helpers.RED + f'An error occurred while trying to display the word count: {e}' + ui_helpers.RESET)
@@ -271,7 +271,6 @@ def text_tf_idf_analysis(files_to_process, menu_return):
         # Filter words with very low TF-IDF for data efficiency/performance
         threshold = 0.01
         tfidf_df = tfidf_df.loc[:, (tfidf_df.max() > threshold)]
-
 
         return tfidf_df, final_metadata
     
@@ -350,29 +349,30 @@ def apply_threshold_filter(tfidf_df, threshold=0.01):
     return tfidf_df.loc[:, (tfidf_df.max() > threshold)]
 
 # Calculates the Min and Max values for a DataFrame
-def get_min_max(tfidf_df):
+def get_min_max(df):
     """
-    Calculates and returns the Min/Max values for TF-IDF scores in a DataFrame. Assists the ui.tf_idf_df_manipulation_menu() function, enabling the user to quickly sort or truncate a DF based on TF-IDF values.
+    Calculates and returns the Min/Max values for values in a DataFrame. Enables the user to quickly sort or truncate a DF based on TF-IDF values.
 
     Parameters:
-    tfidf_df - a Pandas DataFrame which contains TF-IDF score calculations.
+    df - a Pandas DataFrame which contains TF-IDF score calculations. Can be either the TF-IDF or Word Counts DataFrames.
 
     Returns:
-    min_value - the smallest TF-IDF score in a TF-IDF DataFrame.
-    max_value - the largest TF-IDF score in a TF-IDF DataFrame.
+    min_value - the smallest value in the DataFrame.
+    max_value - the largest value in the DataFrame.
     """
-    min_value = tfidf_df.min().min()
-    max_value = tfidf_df.max().max()
+
+    min_value = df.min().min()
+    max_value = df.max().max()
 
     return min_value, max_value
 
-# Enables user to search TF-IDF DataFrame for specific words
-def word_search_dataframe(tfidf_df, words_list):
+# Enables user to search a DataFrame for specific words
+def word_search_dataframe(df, words_list):
     """
-    Performs the search within a DataFrame for specific words (columns) and filters out non-matching columns.
+    Performs a search within a DataFrame for specific words (columns) and keeps only the user-defined words.
 
     Parameters:
-    tfidf_df - a Pandas DataFrame which contains TF-IDF score calculations.
+    df - a Pandas DataFrame which contains Word Counts or TF-IDF scores.
     words_list - a user-defined list of search words.
 
     Returns:
@@ -380,8 +380,27 @@ def word_search_dataframe(tfidf_df, words_list):
     """
 
     # Checks if word is in DF column list and applies filter
-    filtered_words = [word for word in words_list if word in tfidf_df.columns]
-    filtered_df = tfidf_df[filtered_words]
+    filtered_words = [word for word in words_list if word in df.columns]
+    filtered_df = df[filtered_words]
+
+    return filtered_df
+
+# Enables user to search a DataFrame for specific words
+def remove_words_from_df(df, words_list):
+    """
+    Performs a search within a DataFrame for specific words (columns) removes the words.
+
+    Parameters:
+    df - a Pandas DataFrame which contains Word Counts or TF-IDF scores.
+    words_list - a user-defined list of search words.
+
+    Returns:
+    filtered_df - the DataFrame once all undesired columns have been filtered.
+    """
+
+    # Checks if word is in DF column list and applies filter
+    filtered_words = [word for word in words_list if word in df.columns]
+    filtered_df = df.drop(filtered_words, axis=1)
 
     return filtered_df
 
@@ -555,13 +574,9 @@ def reset_commonwords_txt():
     try:
         os.remove('commonwords.txt')
         initialize_common_words()
-        input(ui_helpers.YELLOW + '\nCommonwords.txt has been reset to the default list!'
-          + ui_helpers.RESET + '\n\nPress Enter to continue...')
     
     except FileNotFoundError:
         initialize_common_words()
-        input(ui_helpers.YELLOW + '\nCommonwords.txt has been reset to the default list!'
-          + ui_helpers.RESET + ' Press Enter to continue...')
 
 # Removes all filters by deleting the contents of commonwords.txt
 def delete_commonwords_txt_contents():
@@ -574,6 +589,25 @@ def delete_commonwords_txt_contents():
     # Removes filters and displays user confirmation
     with open('commonwords.txt', 'w', encoding='utf-8') as common_build:
         common_build.write(' ')
+
+# Create DataFrame from Word Counts Nested Dictionary
+def word_counts_to_df(word_counts_all_docs):
+    """
+    Returns a DataFrame from the nested dictionary created during the Word Counts functions.
+
+    Note: the word_counts_all_docs must be structured: {filename:{word:counts}}
+
+    Parameters:
+    word_counts_all_docs - nested dictionary created during the Word Counts functions
+
+    Returns:
+    word_counts_df - a DataFrame using the file names as row index and containing the word counts for each document
+    """
+
+    # Create the DF
+    word_counts_df = pd.DataFrame.from_dict(word_counts_all_docs, orient='index')
     
-    # User confirmation prompt and return
-    input(ui_helpers.YELLOW + '\nCommonwords.txt has been cleared!' + ui_helpers.RESET +  '\n\nYou may alawys reset to the default list by selecting Option 4 in ' + ui_helpers.CYAN + 'Filter Settings' + ui_helpers.RESET + ' menu.\n\nPress Enter to continue...')
+    # Replace 'NaN' with '0'
+    word_counts_df = word_counts_df.fillna(0)
+
+    return word_counts_df

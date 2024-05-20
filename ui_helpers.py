@@ -5,6 +5,7 @@ import pandas as pd
 
 # For coloring of text inside the menu interface
 RED = '\033[31m'
+GREEN = '\033[32m'
 YELLOW = '\033[33m'
 CYAN = '\033[36m'
 RESET = '\033[0m'
@@ -14,6 +15,49 @@ GRAY = '\033[90m'
 script_path = os.path.abspath(__file__)
 script_dir = os.path.dirname(script_path)
 
+# Program Header
+def header(tfidf_df, final_metadata, word_counts_df):
+    """
+    Displays whether the TF-IDF and Word Counts DataFrames and the Final Metadata dictionaries are loaded. Intended for display on each screen to provide the user constant awareness of the program's operating status.
+
+    Parameters:
+    tfidf_df - a global df that is loaded once a TF-IDF analysis is performed. Default None.
+    final_metadata - a dictionary that contains user-input data concerning each file. Default None.
+    word_counts_df - a global df that is loaded once a Word Count analysis performed. Default None.
+    """
+    while True:
+        # Program version
+        print(CYAN + 'TextCrawl v.60' + RESET)
+        print('_'*42)
+        
+        # Word Counts DF Status
+        if word_counts_df is None:
+            print(YELLOW + 'DataFrame Status' + RESET)
+            print(GRAY + 'Word Count Analysis: Empty')
+        else :
+            shape = str(word_counts_df.shape)
+            print(YELLOW + 'DataFrame Status' + RESET) 
+            print(GREEN + 'Word Count Analysis: ' + RESET + f'{shape} (columns, rows)')
+        
+        # TF-IDF DF Status
+        if tfidf_df is None:
+            print(GRAY + 'TF-IDF Analysis: Empty')
+        
+        else :
+            shape = str(tfidf_df.shape)
+            print(GREEN + 'TF-IDF Analysis: ' + RESET + f'{shape} (columns, rows)')
+        
+        # Final Metadata Status
+        if final_metadata is None:
+            print(GRAY + 'Final Metadata DataFrame: Empty' + RESET)
+            print('_'*42)
+        else:
+            length = str(len(final_metadata))
+            print(GREEN + 'Final Metadata DataFrame length: ' + RESET + length)
+            print('_'*32)
+        
+        return
+    
 # Clear screen function
 def clear_screen():
     """
@@ -224,7 +268,7 @@ def move_to_reports():
     """
     Changes to 'Reports' subdirectory when needed to access CSV files.
     """
-    # Moves to script directory and defines Databases subdirectory location
+    # Moves to script directory and defines subdirectory
     os.chdir(script_dir)
     reports_path = os.path.join(script_dir, 'Reports')
     
@@ -232,11 +276,77 @@ def move_to_reports():
     if not os.path.exists(reports_path):
         os.makedirs(reports_path)
     
-    # Moves to Databases
+    # Moves to Reports subdirectory
     os.chdir(reports_path)
 
+# Move to Reports\TF-IDF subdirectory
+def move_to_reports_tfidf():
+    """
+    Moves to the Reports\TF-IDF subdirectory when needed to access or save CSV/TXT files.
+    """
+    # Moves to script directory and defines subdirectory
+    os.chdir(script_dir)
+    reports_path = os.path.join(script_dir, 'Reports\\TF-IDF')
+
+    # Creates directory if it does not exist
+    if not os.path.exists(reports_path):
+        os.makedirs(reports_path)
+
+    # Moves to subdirectory
+    os.chdir(reports_path)
+
+# Move to Reports\Word Counts subdirectory
+def move_to_reports_word_counts():
+    """
+    Moves to the Reports\Word Counts subdirectory when needed to access or save CSV/TXT files.
+    """
+    # Moves to script directory and defines subdirectory
+    os.chdir(script_dir)
+    reports_path = os.path.join(script_dir, 'Reports\\Word Counts')
+
+    # Creates directory if it does not exist
+    if not os.path.exists(reports_path):
+        os.makedirs(reports_path)
+
+    # Moves to subdirectory
+    os.chdir(reports_path)
+
+# Move to Reports\Word Counts subdirectory
+def move_to_reports_sql_queries():
+    """
+    Moves to the Reports\SQL Queries subdirectory when needed to access or save CSV/TXT files.
+    """
+    # Moves to script directory and defines subdirectory
+    os.chdir(script_dir)
+    reports_path = os.path.join(script_dir, 'Reports\\SQL Queries')
+
+    # Creates directory if it does not exist
+    if not os.path.exists(reports_path):
+        os.makedirs(reports_path)
+
+    # Moves to subdirectory
+    os.chdir(reports_path)
+
+
+# Move to Visuals subdirectory
+def move_to_visuals():
+    """
+    Changes to the 'Visuals' subdirectory when needed to save bar charts or other pictures.
+    """
+
+    # Moves to script directory and defines Visuals subdirectory location
+    os.chdir(script_dir)
+    visuals_path = os.path.join(script_dir, 'Visuals')
+
+    # Creates directory if it does not exist
+    if not os.path.exists(visuals_path):
+        os.makedirs(visuals_path)
+
+    # Moves to Visuals subdirectory
+    os.chdir(visuals_path)
+
 # Lists Reports contents and requests user selection
-def list_select_report(menu_return):
+def list_select_report(menu_return, report_subdir):
     """
     Lists the contents of Reports if the file ends with .csv. Prompts user to select a Report, returning to previous menu if they press only "Enter". Returns the name of the report for use by other functions
 
@@ -247,11 +357,18 @@ def list_select_report(menu_return):
     report_name - the name of the selected database, to be used by other functions as needed.
 
     Raises:
-    IndexError - if the number entered by user is out of index range.
     ValueError - if the user enters a non-number.
     """
-    # Moves to Reports subdirectory
-    move_to_reports()
+
+    # Moves to appropriate subdirectory
+    if report_subdir == 'wordcounts':
+        move_to_reports_word_counts()
+    elif report_subdir == 'sqlqueries':
+        move_to_reports_sql_queries()
+    elif report_subdir == 'tfidf':
+        move_to_reports_tfidf()
+    else:
+        move_to_reports()
 
     # Displays contents of Reports subdirectory
     reports_files = os.listdir()
@@ -263,27 +380,27 @@ def list_select_report(menu_return):
 
     # User selection prompt        
     user_selection = input(YELLOW + '\nSelect report using its index number: ' + RESET)
-
+    
     # Returns user to Trends Over Time menu if only "Enter" is pressed
     if user_selection == '':
         menu_return()
 
-    # Manages user selection
+    # Manages user selection if not "Enter"
     else:
         try:
             selection_index = int(user_selection)
-            if selection_index < 0 or selection_index > len(reports_files):
-                input(RED + 'Selection out of range. Please try again.' + RESET + ' Press Enter.')
-            report_name = reports_files[selection_index - 1]
-            return report_name
-        
-        except IndexError:
-            print(RED + 'File number is out of range. Please check and try again.' + RESET)
-            return
         
         except ValueError:
-            print(RED + 'Invalid input. Please enter the index number only.' + RESET)
-            return
+            input(RED + 'Invalid input. Please enter the index number only.' + RESET + ' Press Enter.')
+            menu_return()
+
+        if selection_index < 0 or selection_index > len(reports_files):
+            input(RED + 'Selection out of range. Please try again.' + RESET + ' Press Enter.')
+            clear_screen()
+            menu_return()
+
+        report_name = reports_files[selection_index - 1]
+        return report_name            
 
 # Reads a csv or txt report
 def read_txt_or_csv(filename):
@@ -299,14 +416,18 @@ def read_txt_or_csv(filename):
     Raises:
     ValueError - if file type is not supported.
     """
+    try:
+        if filename.endswith('.csv'):
+            df = pd.read_csv(filename, index_col=0)
 
-    if filename.endswith('.csv'):
-        df = pd.read_csv(filename)
-    elif filename.endswith('txt'):
-        df = pd.read_csv(filename, sep='\t')
-    else:
-        raise ValueError(RED + 'Error reading report. Please check file type or select a different file.' + RESET)
+        elif filename.endswith('txt'):
+            df = pd.read_csv(filename, sep='\t', index_col=0)
+        else:
+            raise ValueError(RED + 'Error reading report. Please check file type or select a different file.' + RESET)
     
+    except AttributeError:
+        print(RED + 'File selection invalid. Please check selection and retry.' + RESET)
+        
     return df
 
 # Display of analysis confirmation sentence
@@ -317,10 +438,10 @@ def analysis_confirmation(user_file):
     clear_screen()
     print(YELLOW + f'\nBeginning analysis of ' + RESET + f'{user_file}' + YELLOW + ' now...\n')
 
-# Get top_n (number of rows) to return in SQL query
+# Get top_n (number of rows) to return in SQL query and DataFrame operations
 def get_top_n():
     """
-    Prompts top_n for SQL database queries.
+    Prompts top_n for SQL database queries and specific DataFrame operations.
 
     Returns:
     top_n - must be a number.
@@ -332,9 +453,9 @@ def get_top_n():
     while True:
         try:
             # Number range end 
-            top_n = input(YELLOW + 'Enter number of data rows to return: ' + RESET)
+            top_n = input(YELLOW + 'Enter a number: ' + RESET)
             if top_n == '':
-                top_n = 25
+                top_n = 5
             top_n = int(top_n)
 
             return top_n
@@ -422,6 +543,7 @@ def save_df_as_csv(df, default_name):
     default_name - the name of the file if the user presses Enter without typing a name.
     """
     # CSV File Read Limitation Notice
+    clear_screen()
     print(YELLOW + '\nNotice! Programs have different row and column limits. As of May 2024, the limitations of some of the most popular programs are:\n')
     print(RESET + 'Microsoft Excel: 1,048,576 rows, 16,384 columns')
     print(RESET + 'LibreOffice Calc: 1,048,576 rows, 1,024 columns')
@@ -434,19 +556,16 @@ def save_df_as_csv(df, default_name):
     if len(filename) < 1:
         filename = default_name
         print(YELLOW + 'No name entered! Report will be saved as ' + 
-              RESET + f'{filename}' + YELLOW + '.' + RESET)
+              RESET + f'{filename}')
     
     # Adds .csv extension if needed
     if not filename.endswith('.csv'):
         filename += '.csv'
     
-    # Moves to Reports subdirectory and exports df as .csv there
-    move_to_reports()
+    # Saves DF to the current directory
     df.to_csv(f'{filename}', index=True)
-
-    # Export confirmation and user prompt to return to SQL Queries menu
-    print(RESET + f'\n{filename} ' + 
-          YELLOW + 'saved to Reports subdirectory!')
+    print(RESET + filename + YELLOW + ' has been saved.' + RESET)
+    
     return
 
 # Saves a DataFrame as a .txt file (tab-delimited)
@@ -477,8 +596,7 @@ def save_df_as_txt(df, default_name):
     if not filename.endswith('.txt'):
         filename += '.txt'
     
-    # Moves to Reports subdirectory and exports df as .csv there
-    move_to_reports()
+    # Saves DF to the current directory
     df.to_csv(f'{filename}', sep='\t', index=True, header=True)
 
     # Export confirmation and user prompt to return to SQL Queries menu
