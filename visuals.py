@@ -5,6 +5,55 @@ import pandas as pd
 
 # Import local libraries
 import ui_helpers
+  
+# Display word count
+def display_word_frequency(filename, wordtally_dict, number_to_list):
+    """
+    This function uses the dictionary created in the tally_words function along with a user-defined number of words to list and displays the results of the .txt file word frequency count.
+
+    Parameters:
+    filename - the name of the file processed.
+    wordtally_dict - must be the wordtally_dict{} returned by the tally_words function.
+    number_to_list - typically a user-defined number of the top words to list (if user enters no value, all words will be displayed).
+
+    Returns:
+    wordtally_dict - the original wordtally dictionary (to be used by other functions)
+    sorted_list - the list which displays the results of the tallying in order from greatest to smallest as of v.30.
+
+    Raises:
+    Exception for unexpected errors.
+    """
+
+    # Checks if wordtally_dict contains data
+    if wordtally_dict is None:
+        print(ui_helpers.RED + 'Error: expected a dictionary but got None' + ui_helpers.RESET)
+        return
+    
+    try:
+        # Preparing a list from the wordtally_dict dictionary
+        tallied_list = list(wordtally_dict.items())
+        sorted_list = sorted(tallied_list, key=lambda item:item[1], reverse=True)
+
+        # Displays user-defined number of words (or all words)
+        if number_to_list == '':
+            top_count_words = sorted_list
+        else:
+            top_count_words = sorted_list[:number_to_list]
+
+        # Prints the 'Top N Words' list
+        print(ui_helpers.CYAN + '\n\nFILE: ' + ui_helpers.RESET + f'{filename}')
+        print(ui_helpers.CYAN + '\nRank ) Word - Count\n' + '_'*19 + '\n' + ui_helpers.RESET)
+        for index, (word, count) in enumerate(top_count_words, start=1):
+            print(f'{index}' + ') ' f'{word[0].upper()}{word[1:]} - {count}')
+
+            # Pauses execution for user input when printing large result set
+            if index % 2500 == 0:
+                input(ui_helpers.YELLOW + '\nDisplayed 2,500 results! Press Enter to continue...' + ui_helpers.RESET)
+
+        return(wordtally_dict, sorted_list)
+    
+    except Exception as e:
+        print(ui_helpers.RED + f'An error occurred while trying to display the word count: {e}' + ui_helpers.RESET)
 
 # Create a dashboard for a TF-IDF DataFrame using Dash
 def create_tf_idf_dash(tfidf_df, final_metadata, top_n=5):
@@ -60,7 +109,7 @@ def create_tf_idf_dash(tfidf_df, final_metadata, top_n=5):
         metadata_text = f'Title: {meta['doc_title']}, Author: {meta['author']}, Year: {meta['year']}, Genre: {meta['genre']}'
 
         return fig, f'{metadata_text}'
-    
+
     app.run_server(debug=True)
     return tfidf_df, final_metadata
 
@@ -103,14 +152,14 @@ def create_counts_barchart(word_counts_df, top_n=5):
                  y='Counts', 
                  color='Document', 
                  barmode='group', 
-                 title=f'Top {top_n} words per document')
+                 title='Word Counts per Document')
 
     # User inputs file name
     filename = input(ui_helpers.YELLOW + 'Enter name for .png barchart: ' + ui_helpers.RESET)
 
     # Sets default name if none entered
     if len(filename) < 1:
-        filename = 'tfidf_df_barchart.png'
+        filename = 'word_counts_barchart.png'
         print(ui_helpers.YELLOW + 'No name entered! Bar chart will be saved as ' +
                ui_helpers.RESET + f'{filename}')
     
@@ -163,7 +212,7 @@ def create_tf_idf_barchart(tfidf_df, top_n=5):
                  y='TF-IDF Score', 
                  color='Document', 
                  barmode='group', 
-                 title=f'Top {top_n} words per document')
+                 title='TF-IDF Word Scores per Document')
 
     # User inputs file name
     filename = input(ui_helpers.YELLOW + 'Enter name for .png barchart: ' + ui_helpers.RESET)
