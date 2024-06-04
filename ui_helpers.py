@@ -27,8 +27,8 @@ def header(tfidf_df, final_metadata, word_counts_df):
     """
     while True:
         # Program version
-        print(CYAN + 'TextCrawl v.60' + RESET)
-        print('_'*42)
+        print(CYAN + 'TextAnalysis v.70' + RESET)
+        print('_'*55)
         
         # Word Counts DF Status
         if word_counts_df is None:
@@ -45,16 +45,16 @@ def header(tfidf_df, final_metadata, word_counts_df):
         
         else :
             shape = str(tfidf_df.shape)
-            print(GREEN + 'TF-IDF Analysis: ' + RESET + f'{shape} (columns, rows)')
+            print(GREEN + 'TF-IDF Analysis: ' + RESET + f'{shape} (documents, words)')
         
         # Final Metadata Status
         if final_metadata is None:
             print(GRAY + 'Final Metadata DataFrame: Empty' + RESET)
-            print('_'*42)
+            print('_'*55)
         else:
             length = str(len(final_metadata))
             print(GREEN + 'Final Metadata DataFrame length: ' + RESET + length)
-            print('_'*32)
+            print('_'*55)
         
         return
     
@@ -67,6 +67,7 @@ def clear_screen():
 
     if os.name == 'nt':
         os.system('cls')
+    
     else:
         os.system('clear')
 
@@ -136,7 +137,8 @@ def list_select_textfile(menu_return):
     for index, filename in enumerate(text_files, start=1):
         if filename.endswith('.txt'):
             print(f'{index}) {filename}')
-    user_selection = input(YELLOW + '\nEnter number(s) of the file to analyze separated by commas or spaces (i.e., 1, 2, 4): ' + RESET)
+    print(YELLOW + '\nEnter number(s) of the file to analyze separated by commas or spaces (i.e., 1, 2, 4) or type "all" to process all files listed.')
+    user_selection = input(RESET + '\nEnter your selection: ')
 
     # Returns user to Quicklook menu if only "Enter" is pressed
     if user_selection == '':
@@ -297,7 +299,7 @@ def move_to_reports_tfidf():
 
 # Move to Reports\Word Counts subdirectory
 def move_to_reports_word_counts():
-    """
+    r"""
     Moves to the Reports\Word Counts subdirectory when needed to access or save CSV/TXT files.
     """
     # Moves to script directory and defines subdirectory
@@ -313,7 +315,7 @@ def move_to_reports_word_counts():
 
 # Move to Reports\Word Counts subdirectory
 def move_to_reports_sql_queries():
-    """
+    r"""
     Moves to the Reports\SQL Queries subdirectory when needed to access or save CSV/TXT files.
     """
     # Moves to script directory and defines subdirectory
@@ -326,7 +328,6 @@ def move_to_reports_sql_queries():
 
     # Moves to subdirectory
     os.chdir(reports_path)
-
 
 # Move to Visuals subdirectory
 def move_to_visuals():
@@ -548,7 +549,7 @@ def save_df_as_csv(df, default_name):
     print(RESET + 'Microsoft Excel: 1,048,576 rows, 16,384 columns')
     print(RESET + 'LibreOffice Calc: 1,048,576 rows, 1,024 columns')
     print(RESET + 'Google Sheets: 10 million total cells per sheet\n')
-    print(YELLOW + 'Consider manipulating the DataFrame first before writing to a .csv if you are concerned about truncation.\n')
+    print(YELLOW + 'Consider transforming the DataFrame first before writing to a .csv if you are concerned about truncation.\n')
     
     # User specifies name and .csv is added if necessary
     filename = input(YELLOW + 'Enter name for .csv report: ' + RESET)
@@ -570,7 +571,7 @@ def save_df_as_csv(df, default_name):
 
 # Saves a DataFrame as a .txt file (tab-delimited)
 def save_df_as_txt(df, default_name):
-    """
+    r"""
     Prompts user to save the DataFrame, and if 'y' is entered, will save it as a tab-delimited .txt file in the Reports subdirectory.
 
     Parameters:
@@ -582,7 +583,7 @@ def save_df_as_txt(df, default_name):
     print(RESET + 'Microsoft Excel: 1,048,576 rows, 16,384 columns')
     print(RESET + 'LibreOffice Calc: 1,048,576 rows, 1,024 columns')
     print(RESET + 'Google Sheets: 10 million total cells per sheet\n')
-    print(YELLOW + 'Consider manipulating the DataFrame first before writing to a .csv if you are concerned about truncation.\n')
+    print(YELLOW + 'Consider transforming the DataFrame first before writing to a .csv if you are concerned about truncation.\n')
     
     # User specifies name and .csv is added if necessary
     filename = input(YELLOW + 'Enter name for the .txt file: ' + RESET)
@@ -605,8 +606,3 @@ def save_df_as_txt(df, default_name):
     return
     
 
-
-
-
-   
-    

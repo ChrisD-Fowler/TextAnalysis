@@ -15,10 +15,10 @@ def load_textfile(filename):
     and returns contents as filename object. This function is essential for the tally_words function.
 
     Parameters:
-    filename
+    filename - the name of the file to be loaded.
 
     Returns:
-    text_file
+    text_file - a string containing the contents of the .txt file after it has been read.
 
     Raises:
     - FileNotFoundError - if text file is not found in Textfiles directory
@@ -29,22 +29,30 @@ def load_textfile(filename):
     ui_helpers.move_to_textfiles()
 
     # Opens the user text file and returns as 'filename' object
-    try: 
-        with open(filename, 'r', encoding='utf-8') as text_file:
-            return text_file.read()
+    if filename:
+        try: 
+            with open(filename, 'r', encoding='utf-8') as text_file:
+                return text_file.read()
 
-    except FileNotFoundError as e:
-        print(ui_helpers.RED + 'The file was not found!' + ui_helpers.RESET + 'Please try again.')
-        return None
+        except FileNotFoundError as e:
+            print(ui_helpers.RED + 'The file was not found!' + ui_helpers.RESET + 'Please try again.')
+            return None
 
-    except Exception as e:
-        print(ui_helpers.RED + f'\nThe following error occurred while attempting to load the .txt file: {e}' + ui_helpers.RESET + '\n\nPlease try again.\n')
-        return None
+        except Exception as e:
+            print(ui_helpers.RED + f'\nThe following error occurred while attempting to load the .txt file: {e}' + ui_helpers.RESET + '\n\nPlease try again.\n')
+            return None
+        
+    else:
+        print(ui_helpers.RED + 'The load_textfile function expected a valid file name, but none was passed')
+        input(ui_helpers.RESET + 'Press Enter to continue')
 
 # Clean and strip a txt file prior to processing
 def clean_strip_txt_file(loaded_text_file):
     """
     Assists other functions (such as analysis.text_tf_idf_analysis()) with noramlizing the contents of a .txt file and filtering any words found in the commonwords.txt filter prior to performing the TF-IDF calculation. Uses Regular Expressions.
+
+    Parameters:
+    loaded_text_file - a string containing the contents of a .txt after it has been read by load_textfile().
 
     Returns:
     cleaned_content - the full text of the original file, normalized and stripped of any words found in commonwords.txt.
@@ -55,19 +63,24 @@ def clean_strip_txt_file(loaded_text_file):
     # Load commonwords.txt filter
     common_words_list = load_common_words()
     
-    try:
-        # Perform text cleaning operations using RE
-        text = loaded_text_file.lower()
-        text = re.sub(r'[\d_]+|[^\w\s]', '', text)
+    if loaded_text_file:
+        try:
+            # Perform text cleaning operations using RE
+            text = loaded_text_file.lower()
+            text = re.sub(r'[\d_]+|[^\w\s]', '', text)
 
-        # Creat list of words not found in the common_words_list filter, rejoin as string
-        filtered_words = [word for word in text.split() if word not in common_words_list]
-        cleaned_content = ' '.join(filtered_words)
+            # Creat list of words not found in the common_words_list filter, rejoin as string
+            filtered_words = [word for word in text.split() if word not in common_words_list]
+            cleaned_content = ' '.join(filtered_words)
+            
+            return cleaned_content
         
-        return cleaned_content
-    
-    except Exception as e:
-        print(ui_helpers.RED + f'An error was encountered while trying to normalize and filter the .txt file: {e}' + ui_helpers.RESET)
+        except Exception as e:
+            print(ui_helpers.RED + f'An error was encountered while trying to normalize and filter the .txt file: {e}' + ui_helpers.RESET)
+
+    else:
+        print(ui_helpers.RED + 'The clean_strip_txt_file function failed because it was not given a valid string containing the contents of a .txt file')
+        input(ui_helpers.RESET + 'Press Enter to continue.')
 
 # URL-based text file open
 def url_text_file_open(user_url):
@@ -81,6 +94,7 @@ def url_text_file_open(user_url):
     user_url - the user-specified URL for the .txt to open
 
     Returns:
+    filename - the name of the file
     text_file_data - a string containing the complete text of the file retrieved at the URL specified. Used by other functions to process the words contained.
 
     Raises:
@@ -104,7 +118,7 @@ def url_text_file_open(user_url):
             print(ui_helpers.RED + 'Failed to retrieve data.', response.status_code + ui_helpers.RESET + 'Please check the URL or your connection and try again.')
     
     except requests.exceptions.RequestException as e:
-        print(ui_helpers.RED + 'TextCrawl encountered an error retrieving the URL!' + ui_helpers.RESET)
+        print(ui_helpers.RED + 'TextAnalysis encountered an error retrieving the URL!' + ui_helpers.RESET)
 
 # Performs word frequency analysis with user parameters
 def tally_words(text_file_data, common_list):
@@ -140,71 +154,131 @@ def tally_words(text_file_data, common_list):
     - Loads text files in UTF-8 for compatability
     - Will pause every 2,500 lines if the user selects a number > 2,500 to list 
     """
+
     wordtally_dict = {}
-    try:
-        # REGEX findall method to separate each word from the lower-case normalized string object text_file_data
-        words = re.findall(r"\b[a-zA-Z]+(?:-[a-zA-Z]+)*(?:(?<=\w)[\'’](?![sSdD]\b)[a-zA-Z]+)?\b", text_file_data.lower())
 
-        # Iterate over words list to add to wordtally_dict count
-        for word in words:
-            if word not in common_list and len(word) > 2:
-                wordtally_dict[word] = wordtally_dict.get(word, 0) + 1
+    if text_file_data:
+        try:
+            # REGEX findall method to separate each word from the lower-case normalized string object text_file_data
+            words = re.findall(r"\b[a-zA-Z]+(?:-[a-zA-Z]+)*(?:(?<=\w)[\'’](?![sSdD]\b)[a-zA-Z]+)?\b", text_file_data.lower())
 
-    except Exception as e:
-        ui_helpers.clear_screen()
-        print(ui_helpers.RED + f'TextCrawl encountered an unexpected error during the word_tally function: {e} ' + ui_helpers.RESET)
-        input('...')
+            # Iterate over words list to add to wordtally_dict count
+            for word in words:
+                if word not in common_list and len(word) > 2:
+                    wordtally_dict[word] = wordtally_dict.get(word, 0) + 1
+        
+            return wordtally_dict
 
-    return wordtally_dict
+        except Exception as e:
+            ui_helpers.clear_screen()
+            print(ui_helpers.RED + f'TextAnalysis encountered an unexpected error during the word_tally function: {e} ' + ui_helpers.RESET)
+            input('...')
 
-# Display word frequency
-def display_word_frequency(filename, wordtally_dict, number_to_list):
-    """
-    This function uses the dictionary created in the tally_words function along with a user-defined number of words to list and displays the results of the .txt file word frequency count.
+    else:
+        print(ui_helpers.RED + 'Error: A string containing text data was expected by the tally_words function, but was not found')
+        input(ui_helpers.RESET + '\nPress Enter to continue.')
+
+
+
+def url_tf_idf_analysis(menu_return):
+    r"""
+    Enables TF-IDF analysis of multiple URLs. Prompts user to enter metadata (title, author, genre, year) for each URL, which is saved to the final_metadata dictionary to be used by other functions (i.e., visual dashboard)
 
     Parameters:
-    filename - the name of the file processed.
-    wordtally_dict - must be the wordtally_dict{} returned by the tally_words function.
-    number_to_list - typically a user-defined number of the top words to list (if user enters no value, all words will be displayed).
+    menu_return - the user-specified menu to return to if user cancels operation or for the program to return to once an error has occurred.
 
     Returns:
-    wordtally_dict - the original wordtally dictionary (to be used by other functions)
-    sorted_list - the list which displays the results of the tallying in order from greatest to smallest as of v.30.
+    tfidf_df - the DataFrame containing the TF-IDF scores for each document.
+    final_metadata - the dictionary containing the user-defined metadata for each document.
 
-    Raises:
-    Exception for unexpected errors.
     """
+    # Set lists for the TF-IDF Vectorizer and Pandas to use for data organization
+    texts = []
+    file_names = []
+    final_metadata = {}
 
-    # Checks if wordtally_dict contains data
-    if wordtally_dict is None:
-        print(ui_helpers.RED + 'Error: expected a dictionary but got None' + ui_helpers.RESET)
-        return
-    
-    try:
-        # Preparing a list from the wordtally_dict dictionary
-        tallied_list = list(wordtally_dict.items())
-        sorted_list = sorted(tallied_list, key=lambda item:item[1], reverse=True)
+    while True:
+        # Prompts user for the URL
+        user_url = input(ui_helpers.YELLOW + '\nPlease enter or paste the complete URL here ' + 
+                         ui_helpers.RESET + '(Enter "D" when Done or "C" to Cancel): ')
 
-        # Displays user-defined number of words (or all words)
-        if number_to_list == '':
-            top_count_words = sorted_list
+        # Changes user_url to a string to perform checks
+        user_url_check = str(user_url).lower()
+
+        # Returns to previous menu and clears DFs if user enters "c"
+        if user_url_check == 'c':
+            tfidf_df = None
+            final_metadata = None
+            menu_return()
+            return tfidf_df, final_metadata
+        
+        # If user enters "d" for done
+        if user_url_check == 'd':
+
+            # Checks if user has not entered at least two URLs
+            if len(final_metadata) < 2:
+                input(ui_helpers.RED + 'Error! Must enter at least two URLs.' + 
+                      ui_helpers.RESET + ' Press Enter to return to TF-IDF Menu.')
+                tfidf_df = None
+                final_metadata = None
+                menu_return()
+                return tfidf_df, final_metadata
+
+            else:
+                break
+
+        # Checks for "http" prefix
+        if user_url_check[0:4] != 'http':
+            input(ui_helpers.RED + 'Invalid URL! Please check and try again.' + ui_helpers.RESET)
+            menu_return()
+            break
+        
+        if user_url == '':
+            break
+        
         else:
-            top_count_words = sorted_list[:number_to_list]
+            # Opens the URL and returns the filename and entire .txt as a string
+            default_filename, text_file_data = url_text_file_open(user_url)
 
-        # Prints the 'Top N Words' list
-        print(ui_helpers.CYAN + '\n\nFILE: ' + ui_helpers.RESET + f'{filename}')
-        print(ui_helpers.CYAN + '\nRank ) Word - Count\n' + '_'*19 + '\n' + ui_helpers.RESET)
-        for index, (word, count) in enumerate(top_count_words, start=1):
-            print(f'{index}' + ') ' f'{word[0].upper()}{word[1:]} - {count}')
+        # If the URL is successfully loaded as a string, it is cleaned/normalized for further processing
+        if text_file_data:
+            cleaned_content = clean_strip_txt_file(text_file_data)
+            filename = str(default_filename[0])
 
-            # Pauses execution for user input when printing large result set
-            if index % 2500 == 0:
-                input(ui_helpers.YELLOW + '\nDisplayed 2,500 results! Press Enter to continue...' + ui_helpers.RESET)
+            # Prompts user to input file metadata
+            doc_title, author, year, genre = ui_helpers.input_file_metadata(filename)
+        
+            # Adds metadata to final_metadata dictionary
+            if doc_title not in final_metadata: 
+                final_metadata[doc_title] = {
+                'doc_title': doc_title, 
+                'author': author,
+                'year': year,
+                'genre': genre
+                }
 
-        return(wordtally_dict, sorted_list)
-    
-    except Exception as e:
-        print(ui_helpers.RED + f'An error occurred while trying to display the word count: {e}' + ui_helpers.RESET)
+                # Adds file name and cleaned content to lists for Vectorizer
+                texts.append(cleaned_content)
+                file_names.append(default_filename)
+
+    if len(final_metadata) > 1:
+
+        # Initialize Vectorizer
+        vectorizer = TfidfVectorizer()
+
+        # Load contents of each file into Vectorizer
+        tfidf_matrix = vectorizer.fit_transform(texts)
+
+        # Convert TF-IDF matrix to Pandas DataFrame
+        tfidf_df = pd.DataFrame(tfidf_matrix.toarray(),
+                                index=final_metadata.keys(),
+                                columns=vectorizer.get_feature_names_out())
+        
+        # Filter words with very low TF-IDF for data efficiency/performance
+        threshold = 0.01
+        tfidf_df = tfidf_df.loc[:, (tfidf_df.max() > threshold)]
+
+        return tfidf_df, final_metadata
 
 # TF-IDF Text File Analysis
 def text_tf_idf_analysis(files_to_process, menu_return):
@@ -212,7 +286,7 @@ def text_tf_idf_analysis(files_to_process, menu_return):
     Performs TF-IDF analysis on two or more text files. Returns the results as a DataFrame which can be used by other functions (i.e., to save as CSV, to visualize, etc.)
 
     Parameters:
-    files_to_read - a list of file names to perform the analysis. Usually determined by the ui_helpers.list_select_textfile() function.
+    files_to_process - a list of file names to perform the analysis. Usually determined by the ui_helpers.list_select_textfile() function.
     menu_return - specifies where to take the user if no file selection is made (i.e., "Enter" is pressed with no other input).
     
     Returns:
@@ -240,6 +314,7 @@ def text_tf_idf_analysis(files_to_process, menu_return):
 
             # If the .txt file is not blank, requests user input file metadata
             if file_content:
+
                 # Removes common words, numbers, punctuation
                 cleaned_content = clean_strip_txt_file(file_content)
                 doc_title, author, year, genre = ui_helpers.input_file_metadata(filename)
@@ -444,7 +519,7 @@ def load_common_words():
             input('\nPress enter to continue.\n')
 
         except Exception as e:
-            print(ui_helpers.RED + f'TextCrawl encountered an unexpected error: {e}' + ui_helpers.RESET)
+            print(ui_helpers.RED + f'TextAnalysis encountered an unexpected error: {e}' + ui_helpers.RESET)
 
 # Read/display commonwords.txt file
 def read_commonwords_txt():
