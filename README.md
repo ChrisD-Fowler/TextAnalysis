@@ -40,7 +40,7 @@ Christopher Fowler - c.fowler00@yahoo.com
 ## Version History
 
 ### v.70
-- TextCrawl is not TextAnalysis!
+- TextCrawl is now TextAnalysis!
 - Word Count Analysis can now be loaded directly from URLs for multiple files.
 - TF-IDF Analysis can now be performed using two or more URLs - no need to download files anymore.
 - Added helpful instructions to most sub-screens. Revised others for clarity.
