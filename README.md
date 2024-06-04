@@ -1,6 +1,6 @@
-# TextCrawl v.60
+# TextAnalysis v.70
 
-TextCrawl is a Python application that analyzes text data to identify and display the frequency of words. It allows users to input text data from either local files or via URLs. The results can be displayed either as total word counts or filtered to show only the most common words. Results may be added to a SQL database and queries may be generated to provide insight into the data (i.e., word use changes over time, etc.). 
+TextAnalysis is a Python application that analyzes text data to identify and display the frequency of words. It allows users to input text data from either local files or via URLs. The results can be displayed either as total word counts or filtered to show only the most common words. Results may be added to a SQL database and queries may be generated to provide insight into the data (i.e., word use changes over time, etc.). 
 
 Additionally, the results of Word Count and TF-IDF Analyses may be exported as .txt or .csv files and later re-imported from within the program, enabling session-to-session continuity. SQL Queries may also be exported (these queries may not be re-imported, however).
 
@@ -12,7 +12,7 @@ Additionally, the results of Word Count and TF-IDF Analyses may be exported as .
 - **Interactive Dashboard**: Using Dash and Plotly, users may export the results of TF-IDF analysis to an interactive dashboard, enabling quick insight into each document's composition and uniqueness.
 - **Support for Local and Web Text Files**: Load text data from local files or directly from URLs.
 - **Interactive User Interface**: Simple and intuitive command-line interface for easy navigation and usage.
-- **Powerful DataFrame Manipulation**: Users may set value thresholds, perform word searches, remove specific words, truncate, and export DataFrames as desired - before displaying to charts or exporting to .csv or .txt reports.
+- **Powerful DataFrame Transformation**: Users may set value thresholds, perform word searches, remove specific words, truncate, and export DataFrames as desired - before displaying to charts or exporting to .csv or .txt reports.
 - **User Customization**: Users may define which words to filter, conduct word search queries.
 - **Robust Error Handling**: Includes detailed error handling to ensure a smooth user experience.
 
@@ -20,12 +20,12 @@ Additionally, the results of Word Count and TF-IDF Analyses may be exported as .
 - Python 3.8 or higher.
 - Python Libraries: pandas, sklearn, Dash, plotly.express, sqlite3, requests.
 - 'Textfiles' subdirectory containing at least one .txt file or a direct URL for a .txt file (for basic Word Frequency function).
-- 'Textfiles' subdirectory containing two or more .txt files are required to run TF-IDF Analysis.
-- (Optional) DB Browser or other SQLite viewing tool for viewing databases outside of TextCrawl.
+- 'Textfiles' subdirectory containing two or more .txt files or two or more URLs are required to run TF-IDF Analysis.
+- (Optional) DB Browser or other SQLite viewing tool for viewing databases outside of TextAnalysis.
 
 ## Limitations
 - This script was built and tested on a Windows 11 PC. Using on a platform other than Windows 10 may result in colors or other features not displaying or executing properly.
-- Text files in UTF-8 format are the only supported file types.
+- Text files in UTF-8 format are the only supported file types. While URLs to HTML pages may work, users may find a lot of undesired HTML code included in Word Count or TF-IDF Analysis (these may be filtered manually via commonwords.txt or DataFrame Transformation).
 - This program has only been tested using English-language .txt files. Using .txt files in other languages may produce unreliable results.
 - The v.40 script greatly increased program functionality by adding SQL support, but the current query features are not final. More will be added.
 - Code modularity and error handling is currently undergoing review and improvement. Some functions may act unpredictably if users provide very unexpected input.
@@ -38,6 +38,15 @@ Special thanks to Professor Charles Severance for his excellent "Python for Ever
 Christopher Fowler - c.fowler00@yahoo.com
 
 ## Version History
+
+### v.70
+- TextCrawl is not TextAnalysis!
+- Word Count Analysis can now be loaded directly from URLs for multiple files.
+- TF-IDF Analysis can now be performed using two or more URLs - no need to download files anymore.
+- Added helpful instructions to most sub-screens. Revised others for clarity.
+- Streamlined the UI for a refined user experience: removed two options from Main Menu.
+- Improved file, data, and error handling throughout the program, especially in the analysis.py script.
+- Integrated a "Help for this page" option for Level 2 menus.
 
 ### v.60
 - Added Word Count Analysis DataFrame Manipulation Menu, enabling users to alter the results of a Word Count Analysis before exporting to reports or creating visuals.'
