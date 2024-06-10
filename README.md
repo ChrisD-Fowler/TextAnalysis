@@ -27,7 +27,6 @@ Additionally, the results of Word Count and TF-IDF Analyses may be exported as .
 - This script was built and tested on a Windows 11 PC. Using on a platform other than Windows 10 may result in colors or other features not displaying or executing properly.
 - Text files in UTF-8 format are the only supported file types. While URLs to HTML pages may work, users may find a lot of undesired HTML code included in Word Count or TF-IDF Analysis (these may be filtered manually via commonwords.txt or DataFrame Transformation).
 - This program has only been tested using English-language .txt files. Using .txt files in other languages may produce unreliable results.
-- The v.40 script greatly increased program functionality by adding SQL support, but the current query features are not final. More will be added.
 - Code modularity and error handling is currently undergoing review and improvement. Some functions may act unpredictably if users provide very unexpected input.
 - UI is designed to enhance the user experience through consistency and color-coding. However, it is not in a final state and there may be areas in which formatting appears inconsistent.
 
